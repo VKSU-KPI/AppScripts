@@ -1,134 +1,133 @@
-function appendElectionTable() {
+function appendElectionCycle() {
     // Get the active spreadsheet and dashboard sheet
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var dashboardSheet = ss.getActiveSheet();
+    let ss = SpreadsheetApp.getActiveSpreadsheet();
+    let dashboard_sheet = ss.getActiveSheet();
 
-    const election_type_cell = "E2";
-    const faculty_type_cell = "E4";
-    const faculties_cells = "A2:A24";
-
-    // Define election types that require a faculty selection
-    const requires_faculty = ["ВРп", "КСУп", "КТКп", "СРг", "СРп"];
+    // Verify we are running this script from the correct dashboard sheet
+    if (dashboard_sheet.getName() !== DASHBOARD_SHEET_NAME) {
+        SpreadsheetApp.getUi().alert("Цей скрипт можна запускати лише з головного дашборду.");
+        return;
+    }
 
     // Read the election type and faculty from the dashboard
-    var electionType = dashboardSheet.getRange(election_type_cell).getValue();
-    var faculty = dashboardSheet.getRange(faculty_type_cell).getValue();
+    let election_type = dashboard_sheet.getRange(ELECTION_TYPE_CELL).getValue();
+    let faculty = dashboard_sheet.getRange(FACULTY_TYPE_CELL).getValue();
 
     // Validate if an election type is selected
-    if (!electionType) {
+    if (!election_type) {
         SpreadsheetApp.getUi().alert("Спочатку оберіть тип виборів.");
         return;
     }
 
-    var needsFaculty = requires_faculty.indexOf(electionType) !== -1;
+    let is_faculty_needed = FACULTY_REQUIRED_BY.indexOf(election_type) !== -1;
 
     // Validate that a faculty is selected if required
-    if (needsFaculty && !faculty) {
+    if (is_faculty_needed && !faculty) {
         SpreadsheetApp.getUi().alert("Оберіть підрозділ, це обов'язково для цього типу виборів.");
         return;
     }
 
     // Construct the target sheet name and template name
-    var targetSheetName = electionType;
-    if (needsFaculty) {
-        targetSheetName = electionType + " " + faculty;
+    let target_sheet_name = election_type;
+    if (is_faculty_needed) {
+        target_sheet_name = election_type + " " + faculty;
     }
-    var templateName = electionType + " ШАБЛОН";
+    let template_name = election_type + " ШАБЛОН";
 
     // Fetch the target and template sheets
-    var targetSheet = ss.getSheetByName(targetSheetName);
-    var templateSheet = ss.getSheetByName(templateName);
+    let target_sheet = ss.getSheetByName(target_sheet_name);
+    let template_sheet = ss.getSheetByName(template_name);
 
     // Verify both sheets exist before proceeding
-    if (!targetSheet) {
-        SpreadsheetApp.getUi().alert("Аркуш '" + targetSheetName + "' не існує. Створіть його спочатку.");
+    if (!target_sheet) {
+        SpreadsheetApp.getUi().alert("Аркуш '" + target_sheet_name + "' не існує. Створіть його спочатку.");
         return;
     }
-    if (!templateSheet) {
-        SpreadsheetApp.getUi().alert("Шаблон '" + templateName + "' не знайдений.");
+    if (!template_sheet) {
+        SpreadsheetApp.getUi().alert("Шаблон '" + template_name + "' не знайдений.");
         return;
     }
 
     // Dynamically get all content from the template sheet
-    var sourceRange = templateSheet.getDataRange();
+    let source_range = template_sheet.getDataRange();
 
     // Find the last row with content in the target sheet
-    var lastRow = targetSheet.getLastRow();
+    let last_row = target_sheet.getLastRow();
 
     // Calculate the starting row for the new table with spacing
-    var startRowForNewTable = lastRow > 0 ? lastRow + 1 : 1;
-    var destinationCell = targetSheet.getRange(startRowForNewTable, 1);
+    let start_row_for_new_table = last_row > 0 ? last_row + 1 : 1;
+    let destination_cell = target_sheet.getRange(start_row_for_new_table, 1);
 
     // Copy the template to the destination
-    sourceRange.copyTo(destinationCell);
+    source_range.copyTo(destination_cell);
 
     // MAGIC FIX FOR CONDITIONAL FORMATTING
     // Calculate how many rows down the new table was pasted
-    var rowOffset = startRowForNewTable - sourceRange.getRow();
+    let row_offset = start_row_for_new_table - source_range.getRow();
 
     // Get all conditional formatting rules from the target sheet
-    var rules = targetSheet.getConditionalFormatRules();
-    var updatedRules = [];
+    let rules = target_sheet.getConditionalFormatRules();
+    let updated_rules = [];
 
-    for (var i = 0; i < rules.length; i++) {
-        var rule = rules[i];
-        var booleanCondition = rule.getBooleanCondition();
+    for (let i = 0; i < rules.length; i++) {
+        let rule = rules[i];
+        let boolean_condition = rule.getBooleanCondition();
 
         // Check if it's a custom formula and contains a fully absolute reference (like $B$3)
-        var isCustomFormula = booleanCondition && booleanCondition.getCriteriaType() == SpreadsheetApp.BooleanCriteria.CUSTOM_FORMULA;
-        var hasAbsoluteReference = false;
-        var formula = "";
+        let is_custom_formula = boolean_condition && boolean_condition.getCriteriaType() == SpreadsheetApp.BooleanCriteria.CUSTOM_FORMULA;
+        let has_absolute_reference = false;
+        let formula = "";
 
-        if (isCustomFormula) {
-            formula = booleanCondition.getCriteriaValues()[0];
-            hasAbsoluteReference = /\$[A-Za-z]+\$\d+/.test(formula);
+        if (is_custom_formula) {
+            formula = boolean_condition.getCriteriaValues()[0];
+            has_absolute_reference = /\$[A-Za-z]+\$\d+/.test(formula);
         }
 
         // If it has an absolute reference, we split the rule and shift the rows
-        if (isCustomFormula && hasAbsoluteReference) {
-            var ranges = rule.getRanges();
-            var oldRanges = [];
-            var newRanges = [];
+        if (is_custom_formula && has_absolute_reference) {
+            let ranges = rule.getRanges();
+            let old_ranges = [];
+            let new_ranges = [];
 
             // Separate ranges belonging to old tables from the newly pasted one
-            for (var j = 0; j < ranges.length; j++) {
-                if (ranges[j].getRow() >= startRowForNewTable) {
-                    newRanges.push(ranges[j]);
+            for (let j = 0; j < ranges.length; j++) {
+                if (ranges[j].getRow() >= start_row_for_new_table) {
+                    new_ranges.push(ranges[j]);
                 } else {
-                    oldRanges.push(ranges[j]);
+                    old_ranges.push(ranges[j]);
                 }
             }
 
-            if (newRanges.length > 0) {
+            if (new_ranges.length > 0) {
                 // Shift absolute row references by the calculated offset
-                var newFormula = formula.replace(/(\$[A-Za-z]+)\$(\d+)/g, function(match, colRef, rowNumStr) {
-                    var oldRowNum = parseInt(rowNumStr, 10);
-                    return colRef + "$" + (oldRowNum + rowOffset);
+                let new_formula = formula.replace(/(\$[A-Za-z]+)\$(\d+)/g, function(match, col_ref, row_num_str) {
+                    let old_row_num = parseInt(row_num_str, 10);
+                    return col_ref + "$" + (old_row_num + row_offset);
                 });
 
-                var newRule = rule.copy().setRanges(newRanges).whenFormulaSatisfied(newFormula).build();
-                updatedRules.push(newRule);
+                let new_rule = rule.copy().setRanges(new_ranges).whenFormulaSatisfied(new_formula).build();
+                updated_rules.push(new_rule);
             }
 
-            if (oldRanges.length > 0) {
-                var oldRule = rule.copy().setRanges(oldRanges).build();
-                updatedRules.push(oldRule);
+            if (old_ranges.length > 0) {
+                let old_rule = rule.copy().setRanges(old_ranges).build();
+                updated_rules.push(old_rule);
             }
         } else {
             // If there is no absolute reference (like $G3), keep the rule exactly as is
             // Google Sheets natively handles relative references correctly across merged ranges
-            updatedRules.push(rule);
+            updated_rules.push(rule);
         }
     }
 
     // Apply the corrected rules back to the sheet
-    targetSheet.setConditionalFormatRules(updatedRules);
+    target_sheet.setConditionalFormatRules(updated_rules);
 
     // Clear the dashboard inputs
-    dashboardSheet.getRange(election_type_cell).clearContent();
-    dashboardSheet.getRange(faculty_type_cell).clearContent();
-    dashboardSheet.getRange(faculty_type_cell).clearDataValidations();
+    dashboard_sheet.getRange(ELECTION_TYPE_CELL).clearContent();
+    dashboard_sheet.getRange(FACULTY_TYPE_CELL).clearContent();
+    dashboard_sheet.getRange(FACULTY_TYPE_CELL).clearDataValidations();
 
     // Activate the target sheet
-    ss.setActiveSheet(targetSheet);
+    ss.setActiveSheet(target_sheet);
 }

@@ -1,62 +1,61 @@
 function createElectionSheet() {
     // Get the active spreadsheet and the current dashboard sheet
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var dashboardSheet = ss.getActiveSheet();
+    let ss = SpreadsheetApp.getActiveSpreadsheet();
+    let dashboard_sheet = ss.getActiveSheet();
 
-    const election_type_cell = "E2";
-    const faculty_type_cell = "E4";
-    const faculties_cells = "A2:A24";
+    // Verify we are running this script from the correct dashboard sheet
+    if (dashboard_sheet.getName() !== DASHBOARD_SHEET_NAME) {
+        SpreadsheetApp.getUi().alert("Цей скрипт можна запускати лише з головного дашборду.");
+        return;
+    }
 
-    // Define election types that require a faculty selection
-    const requires_faculty = ["ВРп", "КСУп", "КТКп", "СРг", "СРп"];
-
-    // Read the election type from E2 and the faculty from E4
-    var electionType = dashboardSheet.getRange(election_type_cell).getValue();
-    var faculty = dashboardSheet.getRange(faculty_type_cell).getValue();
+    // Read the election type & faculty
+    let election_type = dashboard_sheet.getRange(ELECTION_TYPE_CELL).getValue();
+    let faculty = dashboard_sheet.getRange(FACULTY_TYPE_CELL).getValue();
 
     // Validate if an election type is actually selected
-    if (!electionType) {
+    if (!election_type) {
         SpreadsheetApp.getUi().alert("Спочатку оберіть тип виборів.");
         return;
     }
 
-    var needsFaculty = requires_faculty.indexOf(electionType) !== -1;
+    let is_faculty_needed = FACULTY_REQUIRED_BY.indexOf(election_type) !== -1;
 
     // Validate that a faculty is selected if the election type requires it
-    if (needsFaculty && !faculty) {
+    if (is_faculty_needed && !faculty) {
         SpreadsheetApp.getUi().alert("Оберіть підрозділ, це обов'язково для цього типу виборів.");
         return;
     }
 
     // Construct the expected name for the new sheet
-    var newSheetName = electionType;
-    if (needsFaculty) {
-        newSheetName = electionType + " " + faculty;
+    let new_sheet_name = election_type;
+    if (is_faculty_needed) {
+        new_sheet_name = election_type + " " + faculty;
     }
 
     // Check if a sheet with this name already exists in the spreadsheet
-    if (ss.getSheetByName(newSheetName)) {
-        SpreadsheetApp.getUi().alert("Аркуш з назвою '" + newSheetName + "' вже існує!");
+    if (ss.getSheetByName(new_sheet_name)) {
+        SpreadsheetApp.getUi().alert("Аркуш з назвою '" + new_sheet_name + "' вже існує!");
         return;
     }
 
     // Construct the expected template name based on the naming convention
-    var templateName = electionType + " ШАБЛОН";
-    var templateSheet = ss.getSheetByName(templateName);
+    let template_name = election_type + " ШАБЛОН";
+    let template_sheet = ss.getSheetByName(template_name);
 
     // Verify that the required template sheet actually exists
-    if (!templateSheet) {
-        SpreadsheetApp.getUi().alert("Шаблон '" + templateName + "' не знайдений. Спочатку створіть його.");
+    if (!template_sheet) {
+        SpreadsheetApp.getUi().alert("Шаблон '" + template_name + "' не знайдений. Спочатку створіть його.");
         return;
     }
 
     // Create a duplicate of the template, rename it, and bring it to the front
-    var newSheet = templateSheet.copyTo(ss);
-    newSheet.setName(newSheetName);
-    ss.setActiveSheet(newSheet);
+    let new_sheet = template_sheet.copyTo(ss);
+    new_sheet.setName(new_sheet_name);
+    ss.setActiveSheet(new_sheet);
 
     // Clear the dashboard input fields and remove data validation for the next time
-    dashboardSheet.getRange(election_type_cell).clearContent();
-    dashboardSheet.getRange(faculty_type_cell).clearContent();
-    dashboardSheet.getRange(faculty_type_cell).clearDataValidations();
+    dashboard_sheet.getRange(ELECTION_TYPE_CELL).clearContent();
+    dashboard_sheet.getRange(FACULTY_TYPE_CELL).clearContent();
+    dashboard_sheet.getRange(FACULTY_TYPE_CELL).clearDataValidations();
 }
