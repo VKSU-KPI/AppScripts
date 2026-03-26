@@ -12,4 +12,18 @@ const FACULTY_REQUIRED_BY = ["ВРп", "КСУп", "КТКп", "СРп"];
 const DORMITORY_REQUIRED_BY = ["СРг"];
 
 // Sheets
+const MAIN_SHEET_NAME = "Головна";
 const DASHBOARD_SHEET_NAME = "Дашборд";
+
+// History
+const HISTORY_UNIQUE_CELLS = {
+  "ВР КПІ": "B3",
+  "Президента": "B4"
+};
+const HISTORY_CELL_RANGES = {
+  "ВРп": "C3:C100",
+  "КСУп": "D3:D100",
+  "КТКп": "E3:E100",
+  "СРг": "F3:F100",
+  "СРп": "G3:G100"
+};
