@@ -5,14 +5,13 @@ function onEdit(e) {
     var sheet = e.source.getActiveSheet();
     var range = e.range;
 
-    const election_type_cell = "E4";
-    const faculty_type_cell = "E6";
+    const election_type_cell = "E2";
+    const faculty_type_cell = "E4";
     const faculties_cells = "A2:A24";
 
     // Define election types that require a faculty selection
     const requires_faculty = ["ВРп", "КСУп", "КТКп", "СРг", "СРп"];
 
-    // Verify the edited cell is E4, which represents the merged E4:E5 cell
     if (range.getA1Notation() === election_type_cell) {
         var electionType = range.getValue();
         var facultyCell = sheet.getRange(faculty_type_cell);

@@ -3,14 +3,14 @@ function createElectionSheet() {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var dashboardSheet = ss.getActiveSheet();
 
-    const election_type_cell = "E4";
-    const faculty_type_cell = "E6";
+    const election_type_cell = "E2";
+    const faculty_type_cell = "E4";
     const faculties_cells = "A2:A24";
 
     // Define election types that require a faculty selection
     const requires_faculty = ["ВРп", "КСУп", "КТКп", "СРг", "СРп"];
 
-    // Read the election type from E4 and the faculty from E6
+    // Read the election type from E2 and the faculty from E4
     var electionType = dashboardSheet.getRange(election_type_cell).getValue();
     var faculty = dashboardSheet.getRange(faculty_type_cell).getValue();
 
