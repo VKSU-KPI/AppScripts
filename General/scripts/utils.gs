@@ -7,13 +7,14 @@ function getInputParameters(sheet) {
 
   let election_type = sheet.getRange(ELECTION_TYPE_CELL).getValue();
   let faculty = sheet.getRange(FACULTY_TYPE_CELL).getValue();
+  let dormitory = sheet.getRange(DORMITORY_TYPE_CELL).getValue();
 
   return {
     election_type: election_type,
     faculty: faculty,
+    dormitory: dormitory
   }
 }
-
 
 function clearInputCells(sheet) {
   // Verify we are running this script from the correct dashboard sheet
@@ -26,4 +27,6 @@ function clearInputCells(sheet) {
   sheet.getRange(ELECTION_TYPE_CELL).clearContent();
   sheet.getRange(FACULTY_TYPE_CELL).clearContent();
   sheet.getRange(FACULTY_TYPE_CELL).clearDataValidations();
+  sheet.getRange(DORMITORY_TYPE_CELL).clearContent();
+  sheet.getRange(DORMITORY_TYPE_CELL).clearDataValidations();
 }

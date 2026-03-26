@@ -12,7 +12,8 @@ function createElectionSheet() {
   // Read input parameters
   let {
     election_type,
-    faculty
+    faculty,
+    dormitory
   } = getInputParameters(dashboard_sheet);
 
   // Validate if an election type is actually selected
@@ -22,10 +23,16 @@ function createElectionSheet() {
   }
 
   let is_faculty_needed = FACULTY_REQUIRED_BY.indexOf(election_type) !== -1;
+  let is_dormitory_needed = DORMITORY_REQUIRED_BY.indexOf(election_type) !== -1;
 
-  // Validate that a faculty is selected if the election type requires it
+  // Validate that a faculty is selected if required
   if (is_faculty_needed && !faculty) {
     SpreadsheetApp.getUi().alert("Оберіть підрозділ, це обов'язково для цього типу виборів.");
+    return;
+  }
+  // Validate that a dormitory is selected if required
+  if (is_dormitory_needed && !dormitory) {
+    SpreadsheetApp.getUi().alert("Оберіть гуртожиток, це обов'язково для цього типу виборів.");
     return;
   }
 
@@ -33,6 +40,8 @@ function createElectionSheet() {
   let new_sheet_name = election_type;
   if (is_faculty_needed) {
     new_sheet_name = election_type + " " + faculty;
+  } else if (is_dormitory_needed) {
+    new_sheet_name = election_type + " #" + dormitory;
   }
 
   // Check if a sheet with this name already exists in the spreadsheet
