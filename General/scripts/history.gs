@@ -1,4 +1,4 @@
-function addLinkToMainSheet(sheet_name, election_type, sheet_id) {
+function addLinkToMainSheet(title, election_type, sheet_id) {
   // Get the active spreadsheet and the main index sheet
   let ss = SpreadsheetApp.getActiveSpreadsheet();
   let main_sheet = ss.getSheetByName(MAIN_SHEET_NAME);
@@ -6,15 +6,20 @@ function addLinkToMainSheet(sheet_name, election_type, sheet_id) {
   // Return early if the main sheet doesn't exist
   if (!main_sheet) return;
 
+  // Forming title for dormitory
+  if (DORMITORY_REQUIRED_BY.indexOf(election_type) !== -1) {
+    title = "#" + title;
+  }
+
   // Construct the hyperlink formula using the sheet's unique GID
-  let link_formula = '=HYPERLINK("#gid=' + sheet_id + '"; "' + sheet_name + '")';
+  let link_formula = '=HYPERLINK("#gid=' + sheet_id + '"; "' + title + '")';
 
   if (HISTORY_UNIQUE_CELLS[election_type]) {
     // Handle unique elections with fixed single cells
     let target_cell = main_sheet.getRange(HISTORY_UNIQUE_CELLS[election_type]);
 
     // Only set the formula if the cell doesn't already display this sheet name
-    if (target_cell.getValue() !== sheet_name) {
+    if (target_cell.getValue() !== title) {
       target_cell.setFormula(link_formula);
     }
   } else if (HISTORY_CELL_RANGES[election_type]) {
@@ -27,7 +32,7 @@ function addLinkToMainSheet(sheet_name, election_type, sheet_id) {
 
     // Scan the range for duplicates and find the first empty slot
     for (let i = 0; i < values.length; i++) {
-      if (values[i][0] === sheet_name) {
+      if (values[i][0] === title) {
         already_exists = true;
         break;
       }

@@ -66,7 +66,15 @@ function createElectionSheet() {
   ss.setActiveSheet(new_sheet);
 
   // Call the indexer function to add a hyperlink to the main sheet
-  addLinkToMainSheet(new_sheet_name, election_type, new_sheet.getSheetId());
+  let link_title;
+  if (is_faculty_needed) {
+    link_title = faculty;
+  } else if (is_dormitory_needed) {
+    link_title = dormitory;
+  } else {
+    link_title = election_type;
+  }
+  addLinkToMainSheet(link_title, election_type, new_sheet.getSheetId());
 
   // Clear the dashboard input fields and remove data validation for the next time
   clearInputCells(dashboard_sheet);
